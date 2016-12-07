@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WishList.WebAPI", "WishList
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WishList.Core", "WishList.Core\WishList.Core.csproj", "{4887008E-E6DE-41F5-8200-1B04FFED920C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WishList.PersonService", "WishList.PersonService\WishList.PersonService.csproj", "{61CD72A5-B3DB-42A3-ABFD-E75D195D74D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,12 @@ Global
 		{4887008E-E6DE-41F5-8200-1B04FFED920C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4887008E-E6DE-41F5-8200-1B04FFED920C}.Release|x64.ActiveCfg = Release|Any CPU
 		{4887008E-E6DE-41F5-8200-1B04FFED920C}.Release|x64.Build.0 = Release|Any CPU
+		{61CD72A5-B3DB-42A3-ABFD-E75D195D74D1}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{61CD72A5-B3DB-42A3-ABFD-E75D195D74D1}.Debug|x64.ActiveCfg = Debug|x64
+		{61CD72A5-B3DB-42A3-ABFD-E75D195D74D1}.Debug|x64.Build.0 = Debug|x64
+		{61CD72A5-B3DB-42A3-ABFD-E75D195D74D1}.Release|Any CPU.ActiveCfg = Release|x64
+		{61CD72A5-B3DB-42A3-ABFD-E75D195D74D1}.Release|x64.ActiveCfg = Release|x64
+		{61CD72A5-B3DB-42A3-ABFD-E75D195D74D1}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,6 +9,17 @@ namespace WishList.WebAPI
         // parameter in the WebApp.Start method.
         public static void ConfigureApp(IAppBuilder appBuilder)
         {
+            // Setup AutoMapper
+            AutoMapper.Mapper.Initialize(mapConfig =>
+            {
+                mapConfig.AllowNullCollections = true;
+                mapConfig.AllowNullDestinationValues = true;
+                mapConfig.CreateMissingTypeMaps = true;
+
+                mapConfig.CreateMap<Models.WishList.WishListApiModel, Core.Models.WishList>()
+                         .ForMember(dest => dest.SelfReportedBehaviorRating, dest => dest.MapFrom(src => src.BehaviorRating));
+            });
+
             // Configure Web API for self-host. 
             HttpConfiguration config = new HttpConfiguration();
 
