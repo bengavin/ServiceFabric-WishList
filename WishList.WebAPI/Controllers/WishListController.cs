@@ -6,6 +6,10 @@ using AutoMapper;
 using WishList.WebAPI.Models.WishList;
 using CoreModels = WishList.Core.Models;
 using WishList.Core.Services;
+using Microsoft.ServiceFabric.Actors;
+using ServiceFabric.PubSubActors.Interfaces;
+using Microsoft.ServiceFabric.Actors.Client;
+using Newtonsoft.Json;
 
 namespace WishList.WebAPI.Controllers
 {
@@ -14,16 +18,18 @@ namespace WishList.WebAPI.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IPersonServiceFactory _personServiceFactory;
+        private readonly Random _random;
 
         public WishListController()
         {
             _mapper = AutoMapper.Mapper.Instance;
             _personServiceFactory = new PersonServiceFactory();
+            _random = new Random();
         }
 
-        public string Get(string id)
+        public IHttpActionResult Get(Guid id)
         {
-            return "TBD";
+            return Content(System.Net.HttpStatusCode.NotFound, new { message = "Did you really think you could see what you're getting?" });
         }
 
         [HttpPost]
@@ -38,6 +44,19 @@ namespace WishList.WebAPI.Controllers
                 if (person == null)
                 {
                     // TODO: Need to create a new person entry
+                    person = new Core.Models.Person
+                    {
+                        BehaviorRating = (Core.Models.BehaviorRating)_random.Next((int)Core.Models.BehaviorRating.Unaware, (int)Core.Models.BehaviorRating.Angelic),
+                        EmailAddress = incomingWishList.EmailAddress,
+                        FamilyName = incomingWishList.FamilyName,
+                        GivenName = incomingWishList.GivenName,
+                        TwitterHandle = incomingWishList.TwitterHandle
+                    };
+
+                    if (!await personService.AddOrUpdateAsync(person))
+                    {
+                        return Content(System.Net.HttpStatusCode.PreconditionFailed, new { message = "Unable to create person" });
+                    }
                 }
 
                 // Update wish list with person data
@@ -49,13 +68,41 @@ namespace WishList.WebAPI.Controllers
                 incomingWishList.TwitterHandle = person.TwitterHandle;
             }
 
-            // TODO: Figure out how to easily publish messages to services/actors from here...
-            //await ServiceFabric.PubSubActors.PublisherServices.PublisherServiceExtensions.PublishMessageAsync()
-            //await this.PublishMessageToBrokerServiceAsync(incomingWishList);
+            await SendBrokeredMessageAsync(incomingWishList);
 
             var routeDictionary = new Dictionary<string, object>(ControllerContext.RouteData.Values) { { "id", incomingWishList.PersonId } };
 
             return CreatedAtRoute("DefaultApi", routeDictionary, new { message = "Wish List Accepted" });
         }
+
+        #region Ported from PubSubActors codebase to support integration with ApiController
+        private async Task SendBrokeredMessageAsync(object message)
+        {
+            var context = (System.Fabric.ServiceContext)this.Configuration.Services.GetService(typeof(System.Fabric.ServiceContext));
+            var applicationName = context.CodePackageActivationContext.ApplicationName;
+
+            var brokerActor = GetBrokerActorForMessage(applicationName, message);
+            var wrapper = CreateMessageWrapper(message);
+            await brokerActor.PublishMessageAsync(wrapper);
+        }
+
+        private MessageWrapper CreateMessageWrapper(object message)
+        {
+            var wrapper = new MessageWrapper
+            {
+                MessageType = message.GetType().FullName,
+                Payload = JsonConvert.SerializeObject(message),
+            };
+
+            return wrapper;
+        }
+
+        private static IBrokerActor GetBrokerActorForMessage(string applicationName, object message)
+        {
+            ActorId actorId = new ActorId(message.GetType().FullName);
+            IBrokerActor brokerActor = ActorProxy.Create<IBrokerActor>(actorId, applicationName, nameof(IBrokerActor));
+            return brokerActor;
+        }
+        #endregion
     }
 }

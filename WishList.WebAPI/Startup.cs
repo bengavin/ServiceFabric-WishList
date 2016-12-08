@@ -1,5 +1,6 @@
 ﻿using System.Web.Http;
 using Owin;
+using System.Fabric;
 
 namespace WishList.WebAPI
 {
@@ -7,7 +8,7 @@ namespace WishList.WebAPI
     {
         // This code configures Web API. The Startup class is specified as a type
         // parameter in the WebApp.Start method.
-        public static void ConfigureApp(IAppBuilder appBuilder)
+        public static void ConfigureApp(IAppBuilder appBuilder, ServiceContext serviceContext)
         {
             // Setup AutoMapper
             AutoMapper.Mapper.Initialize(mapConfig =>
@@ -28,6 +29,7 @@ namespace WishList.WebAPI
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
+            config.Services.Add(typeof(ServiceContext), serviceContext);
 
             appBuilder.UseWebApi(config);
         }
