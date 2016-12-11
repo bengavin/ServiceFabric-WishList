@@ -10,6 +10,8 @@ using Microsoft.ServiceFabric.Actors;
 using ServiceFabric.PubSubActors.Interfaces;
 using Microsoft.ServiceFabric.Actors.Client;
 using Newtonsoft.Json;
+using System.Fabric;
+using System.Threading;
 
 namespace WishList.WebAPI.Controllers
 {
@@ -78,8 +80,9 @@ namespace WishList.WebAPI.Controllers
         #region Ported from PubSubActors codebase to support integration with ApiController
         private async Task SendBrokeredMessageAsync(object message)
         {
-            var context = (System.Fabric.ServiceContext)this.Configuration.Services.GetService(typeof(System.Fabric.ServiceContext));
-            var applicationName = context.CodePackageActivationContext.ApplicationName;
+            var context = await FabricRuntime.GetActivationContextAsync(TimeSpan.FromSeconds(1), CancellationToken.None);
+
+            var applicationName = context.ApplicationName;
 
             var brokerActor = GetBrokerActorForMessage(applicationName, message);
             var wrapper = CreateMessageWrapper(message);

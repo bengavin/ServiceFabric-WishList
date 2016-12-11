@@ -1,9 +1,29 @@
 ﻿using System.Web.Http;
 using Owin;
 using System.Fabric;
+using System;
 
 namespace WishList.WebAPI
 {
+    public interface IServiceContextProvider
+    {
+        ServiceContext GetServiceContext();
+    }
+    public class ServiceContextProvider : IServiceContextProvider
+    {
+        private readonly ServiceContext _serviceContext;
+
+        public ServiceContextProvider(ServiceContext serviceContext)
+        {
+            _serviceContext = serviceContext;
+        }
+
+        public ServiceContext GetServiceContext()
+        {
+            return _serviceContext;
+        }
+    }
+
     public static class Startup
     {
         // This code configures Web API. The Startup class is specified as a type
@@ -29,7 +49,6 @@ namespace WishList.WebAPI
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
-            config.Services.Add(typeof(ServiceContext), serviceContext);
 
             appBuilder.UseWebApi(config);
         }

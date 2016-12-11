@@ -87,6 +87,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\ServiceContextExtensions.cs" />
     <Compile Include="Models\BehaviorRating.cs" />
     <Compile Include="Models\ItemType.cs" />
     <Compile Include="Models\Person.cs" />

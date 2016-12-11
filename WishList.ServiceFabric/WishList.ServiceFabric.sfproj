@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WishList.PersonService\WishList.PersonService.csproj" />
+    <ProjectReference Include="..\WishList.ReviewMemberService\WishList.ReviewMemberService.csproj" />
     <ProjectReference Include="..\WishList.WebAPI\WishList.WebAPI.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
