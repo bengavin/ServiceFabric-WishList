@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace WishList.Core.Models
 {
+    [Serializable]
     public class WishList
     {
         /// <summary>
@@ -44,5 +45,21 @@ namespace WishList.Core.Models
         /// What would you like Santa to bring you this year?
         /// </summary>
         public List<WishListItem> Items { get; set; }
+
+        public List<WishListApproval> Approvals { get; set; }
+
+        public void AddApproval(string approver, params Guid[] approvedItems)
+        {
+            if (Approvals == null)
+            {
+                Approvals = new List<WishListApproval>();
+            }
+
+            Approvals.Add(new WishListApproval
+            {
+                Approver = approver,
+                ApprovedItems = new List<Guid>(approvedItems ?? new Guid[0])
+            });
+        }
     }
 }

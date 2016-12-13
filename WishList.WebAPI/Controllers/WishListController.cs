@@ -6,12 +6,6 @@ using AutoMapper;
 using WishList.WebAPI.Models.WishList;
 using CoreModels = WishList.Core.Models;
 using WishList.Core.Services;
-using Microsoft.ServiceFabric.Actors;
-using ServiceFabric.PubSubActors.Interfaces;
-using Microsoft.ServiceFabric.Actors.Client;
-using Newtonsoft.Json;
-using System.Fabric;
-using System.Threading;
 
 namespace WishList.WebAPI.Controllers
 {
@@ -20,12 +14,14 @@ namespace WishList.WebAPI.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IPersonServiceFactory _personServiceFactory;
+        private readonly IWishListReviewServiceFactory _reviewServiceFactory;
         private readonly Random _random;
 
         public WishListController()
         {
             _mapper = AutoMapper.Mapper.Instance;
             _personServiceFactory = new PersonServiceFactory();
+            _reviewServiceFactory = new WishListReviewServiceFactory();
             _random = new Random();
         }
 
@@ -70,42 +66,17 @@ namespace WishList.WebAPI.Controllers
                 incomingWishList.TwitterHandle = person.TwitterHandle;
             }
 
-            await SendBrokeredMessageAsync(incomingWishList);
-
-            var routeDictionary = new Dictionary<string, object>(ControllerContext.RouteData.Values) { { "id", incomingWishList.PersonId } };
-
-            return CreatedAtRoute("DefaultApi", routeDictionary, new { message = "Wish List Accepted" });
-        }
-
-        #region Ported from PubSubActors codebase to support integration with ApiController
-        private async Task SendBrokeredMessageAsync(object message)
-        {
-            var context = await FabricRuntime.GetActivationContextAsync(TimeSpan.FromSeconds(1), CancellationToken.None);
-
-            var applicationName = context.ApplicationName;
-
-            var brokerActor = GetBrokerActorForMessage(applicationName, message);
-            var wrapper = CreateMessageWrapper(message);
-            await brokerActor.PublishMessageAsync(wrapper);
-        }
-
-        private MessageWrapper CreateMessageWrapper(object message)
-        {
-            var wrapper = new MessageWrapper
+            var reviewService = _reviewServiceFactory.Create();
+            if (await reviewService.ReviewWishListAsync(incomingWishList))
             {
-                MessageType = message.GetType().FullName,
-                Payload = JsonConvert.SerializeObject(message),
-            };
+                var routeDictionary = new Dictionary<string, object>(ControllerContext.RouteData.Values) { { "id", incomingWishList.PersonId } };
 
-            return wrapper;
+                return CreatedAtRoute("DefaultApi", routeDictionary, new { message = "Wish List Accepted" });
+            }
+            else
+            {
+                return Content(System.Net.HttpStatusCode.ServiceUnavailable, new { message = "Wish List Processing Currently Unavailable" });
+            }
         }
-
-        private static IBrokerActor GetBrokerActorForMessage(string applicationName, object message)
-        {
-            ActorId actorId = new ActorId(message.GetType().FullName);
-            IBrokerActor brokerActor = ActorProxy.Create<IBrokerActor>(actorId, applicationName, nameof(IBrokerActor));
-            return brokerActor;
-        }
-        #endregion
     }
 }

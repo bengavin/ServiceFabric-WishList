@@ -6,48 +6,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
-using ServiceFabric.PubSubActors.Interfaces;
-using ServiceFabric.PubSubActors.SubscriberServices;
-using ServiceFabric.PubSubActors.Helpers;
 using WishList.Core.Extensions;
+using WishList.Core.Services;
+using Microsoft.ServiceFabric.Services.Remoting.Runtime;
+using WishList.Core.Actors;
 
 namespace WishList.ReviewMemberService
 {
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class ReviewMemberService : StatelessService, ISubscriberService
+    internal sealed class ReviewMemberService : StatelessService, IWishListReviewService
     {
-        private SubscriberServiceHelper _helper;
+        private List<string> _reviewerActorNames;
+        private readonly IReviewCommitteeActorFactory _actorFactory;
+        private readonly IGiftProcessingServiceFactory _processingFactory;
 
         public ReviewMemberService(StatelessServiceContext context)
             : base(context)
-        { }
-
-        public async Task ReceiveMessageAsync(MessageWrapper message)
         {
-            var wishList = this.Deserialize<Core.Models.WishList>(message);
-            var reviewerName = Context.ServiceName.Segments.Last().Split(':').Last();
-            ServiceEventSource.Current.ServiceMessage(Context, $"Review Member {reviewerName} - Received Wish List for {wishList.EmailAddress}");
-        }
-
-        public async Task RegisterAsync()
-        {
-            ////register with BrokerActor:    
-            //await this.RegisterMessageTypeAsync(typeof(Core.Models.WishList));
-
-            //register with BrokerService:
-            _helper = new SubscriberServiceHelper();
-            await _helper.RegisterMessageTypeAsync(this, typeof(Core.Models.WishList));
-        }
-
-        public async Task UnregisterAsync()
-        {
-            ////unregister with BrokerActor:    
-            //await this.UnregisterMessageTypeAsync(typeof(Core.Models.WishList), true);
-
-            //unregister with BrokerService:
-            await _helper.UnregisterMessageTypeAsync(this, typeof(Core.Models.WishList), true);
+            _actorFactory = new ReviewCommitteeActorFactory();
+            _processingFactory = new GiftProcessingServiceFactory();
         }
 
         /// <summary>
@@ -56,40 +35,47 @@ namespace WishList.ReviewMemberService
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
-            yield return new ServiceInstanceListener(context => new SubscriberCommunicationListener(this, context), "ReviewMemberServiceSubscriberListener");
+            yield return new ServiceInstanceListener(context => this.CreateServiceRemotingListener(context), "ReviewMemberServiceListener");
         }
 
-        protected override async Task OnOpenAsync(CancellationToken cancellationToken)
+        public Task<bool> ReviewWishListAsync(Core.Models.WishList wishList)
         {
-            await RegisterAsync();
-            await base.OnOpenAsync(cancellationToken);
-        }
+            // Check if wish list has been reviewed by everyone
+            var nextReviewer = _reviewerActorNames.Where(reviewer => !(wishList.Approvals?.Any(wla => wla.Approver == reviewer) ?? false)).FirstOrDefault();
 
-        protected override async Task OnCloseAsync(CancellationToken cancellationToken)
-        {
-            await UnregisterAsync();
-            await base.OnCloseAsync(cancellationToken);
-        }
-
-        /// <summary>
-        /// This is the main entry point for your service instance.
-        /// </summary>
-        /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
-        protected override async Task RunAsync(CancellationToken cancellationToken)
-        {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
-
-            long iterations = 0;
-
-            while (true)
+            if (String.IsNullOrWhiteSpace(nextReviewer))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                ServiceEventSource.Current.ServiceMessage(this.Context, "Working-{0}", ++iterations);
-
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                // List is fully reviewed, send it on to fulfillment
+                var processor = _processingFactory.Create();
+                return processor.ProcessWishListAsync(wishList);
             }
+
+            try
+            {
+                // Fire this off, don't wait (if we can get the actor, we'll assume it all works)
+                var actor = _actorFactory.Create(nextReviewer);
+
+                Task.Run(() =>
+                {
+                    // Send to selected reviewer actor
+                    actor.ReviewWishListAsync(wishList);
+                });
+
+                return Task.FromResult(true);
+            }
+            catch(Exception ex)
+            {
+                ServiceEventSource.Current.ServiceMessage(Context, "Exception Occurred Reviewing Wish List: {0}", ex.Message);
+                return Task.FromResult(false);
+            }
+        }
+
+        protected override Task RunAsync(CancellationToken cancellationToken)
+        {
+            var configuredReviewers = Context.GetConfigurationValue("ReviewerNames");
+            _reviewerActorNames = configuredReviewers.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            return base.RunAsync(cancellationToken);
         }
     }
 }

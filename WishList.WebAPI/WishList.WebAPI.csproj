@@ -90,14 +90,6 @@
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ServiceFabric.PubSubActors, Version=4.7.1.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ServiceFabric.PubSubActors.4.7.1\lib\net451\ServiceFabric.PubSubActors.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="ServiceFabric.PubSubActors.Interfaces, Version=4.7.1.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ServiceFabric.PubSubActors.Interfaces.4.7.1\lib\net451\ServiceFabric.PubSubActors.Interfaces.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="ServiceFabricServiceModel, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
       <HintPath>..\packages\Microsoft.ServiceFabric.Actors.2.3.311\lib\net45\ServiceFabricServiceModel.dll</HintPath>
       <Private>True</Private>
@@ -151,7 +143,6 @@
     <None Include="PackageRoot\ServiceManifest.xml" />
     <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="readme.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WishList.Core\WishList.Core.csproj">

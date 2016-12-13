@@ -2,8 +2,19 @@
 
 namespace WishList.Core.Models
 {
+    [Serializable]
     public class WishListItem
     {
+        public WishListItem()
+        {
+            Id = Guid.NewGuid();
+        }
+
+        /// <summary>
+        /// The id of this wish list item
+        /// </summary>
+        public Guid Id { get; set; }
+
         /// <summary>
         /// The type of this item (broad category)
         /// </summary>
