@@ -4,6 +4,7 @@ using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using WishList.Core.Actors;
 using WishList.Core.Models;
+using WishList.Core.Services;
 
 namespace WishList.Actors.GiftMaker
 {
@@ -18,6 +19,8 @@ namespace WishList.Actors.GiftMaker
     [StatePersistence(StatePersistence.Persisted)]
     internal class GiftMaker : Actor, IGiftMakerElfActor
     {
+        private readonly ShippingServiceFactory _shippingServiceFactory;
+
         /// <summary>
         /// Initializes a new instance of GiftMaker
         /// </summary>
@@ -26,9 +29,10 @@ namespace WishList.Actors.GiftMaker
         public GiftMaker(ActorService actorService, ActorId actorId)
             : base(actorService, actorId)
         {
+            _shippingServiceFactory = new ShippingServiceFactory();
         }
 
-        public Task<Gift> MakeWishListItemAsync(Core.Models.WishList wishList, WishListItem itemToMake)
+        public async Task<Gift> MakeWishListItemAsync(Core.Models.WishList wishList, WishListItem itemToMake)
         {
             // TODO: Make the actual gift
             var giftMade = new Gift
@@ -43,7 +47,10 @@ namespace WishList.Actors.GiftMaker
             var completedEvent = GetEvent<IGiftMakerElfActorEvents>();
             completedEvent.GiftCompleted(giftMade);
 
-            return Task.FromResult(giftMade);
+            var service = _shippingServiceFactory.Create();
+            await service.ShipGiftAsync(giftMade, wishList);
+
+            return giftMade;
         }
 
         /// <summary>

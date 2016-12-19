@@ -26,15 +26,16 @@
     <None Include="Scripts\Deploy-FabricApplication.ps1" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\WishList.Actors.GiftMaker\WishList.Actors.GiftMaker.csproj" />
     <ProjectReference Include="..\WishList.Actors.ReviewCommittee\WishList.Actors.ReviewCommittee.csproj" />
     <ProjectReference Include="..\WishList.GiftProcessingService\WishList.GiftProcessingService.csproj" />
     <ProjectReference Include="..\WishList.PersonService\WishList.PersonService.csproj" />
     <ProjectReference Include="..\WishList.ReviewMemberService\WishList.ReviewMemberService.csproj" />
+    <ProjectReference Include="..\WishList.ShippingService\WishList.ShippingService.csproj" />
     <ProjectReference Include="..\WishList.WebAPI\WishList.WebAPI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
   <PropertyGroup>
