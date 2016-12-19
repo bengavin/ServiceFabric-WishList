@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WishList.GiftProcessingServ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WishList.Actors.GiftMaker", "WishList.Actors.GiftMaker\WishList.Actors.GiftMaker.csproj", "{182799D7-4315-476C-8942-4184F519EF67}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WishList.ShippingService", "WishList.ShippingService\WishList.ShippingService.csproj", "{0E071C6F-C2B0-480A-A782-0530FA7B67BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,12 @@ Global
 		{182799D7-4315-476C-8942-4184F519EF67}.Release|Any CPU.ActiveCfg = Release|x64
 		{182799D7-4315-476C-8942-4184F519EF67}.Release|x64.ActiveCfg = Release|x64
 		{182799D7-4315-476C-8942-4184F519EF67}.Release|x64.Build.0 = Release|x64
+		{0E071C6F-C2B0-480A-A782-0530FA7B67BE}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{0E071C6F-C2B0-480A-A782-0530FA7B67BE}.Debug|x64.ActiveCfg = Debug|x64
+		{0E071C6F-C2B0-480A-A782-0530FA7B67BE}.Debug|x64.Build.0 = Debug|x64
+		{0E071C6F-C2B0-480A-A782-0530FA7B67BE}.Release|Any CPU.ActiveCfg = Release|x64
+		{0E071C6F-C2B0-480A-A782-0530FA7B67BE}.Release|x64.ActiveCfg = Release|x64
+		{0E071C6F-C2B0-480A-A782-0530FA7B67BE}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
